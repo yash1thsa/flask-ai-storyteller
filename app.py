@@ -33,11 +33,11 @@ def generate_story(child_name, favorite_character, setting, theme):
         return "Error: Unable to generate story." + str(response.status_code)
 
 
-def read_story_aloud(story_text):
-    """Convert story text to speech"""
-    engine = pyttsx3.init()
-    engine.say(story_text)
-    engine.runAndWait()
+# def read_story_aloud(story_text):
+#     """Convert story text to speech"""
+#     engine = pyttsx3.init()
+#     engine.say(story_text)
+#     engine.runAndWait()
 
 
 @app.route("/", methods=["GET", "POST"])
