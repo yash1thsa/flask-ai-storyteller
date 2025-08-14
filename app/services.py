@@ -1,6 +1,7 @@
 import requests
 from celery_app import celery
 from time import sleep
+
 OLLAMA_API_URL =  "http://127.0.0.1:11434/api/generate"
 
 @celery.task

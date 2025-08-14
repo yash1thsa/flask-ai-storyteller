@@ -19,8 +19,7 @@ local
 pip3 install --no-cache-dir -r requirements.txt 
 brew install redis
 brew services start redis
-brew services start redis
-celery -A celery_app.celery worker --loglevel=info
+celery -A app.celery_app.celery worker --loglevel=info
 python3 run.py  
 
 
