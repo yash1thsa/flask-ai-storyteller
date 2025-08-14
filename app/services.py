@@ -1,16 +1,28 @@
 import requests
-import os
+from celery_app import celery
+from time import sleep
+OLLAMA_API_URL =  "http://127.0.0.1:11434/api/generate"
 
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-
+@celery.task
 def generate_story(child_name, favorite_character, setting, theme):
-    """Generate a personalized bedtime story using DeepSeek API."""
-    prompt = f"Write a bedtime story for {child_name} featuring {favorite_character} in {setting} with a {theme} theme."
+    """
+    Generate a personalized bedtime story using a local Ollama model.
+    """
+    prompt = (
+        f"Write a bedtime infant story for {child_name} featuring {favorite_character} "
+        f"in {setting} with a {theme} theme."
+    )
 
-    headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
-    data = {"model": "deepseek-chat", "messages": [{"role": "user", "content": prompt}], "temperature": 0.7}
+    # Ollama expects `model` and `prompt` in JSON
+    data = {
+        "model": "mistral",  # change to your preferred local model
+        "prompt": prompt,
+        "stream": False  # return the entire output at once
+    }
+    sleep(5)
+    response = requests.post(OLLAMA_API_URL, json=data)
 
-    response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
-
-    return response.json()["choices"][0]["message"]["content"] if response.status_code == 200 else "Error generating story."
+    if response.status_code == 200:
+        return response.json().get("response", "")
+    else:
+        return f"Error generating story: {response.text}"

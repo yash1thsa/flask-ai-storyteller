@@ -5,6 +5,7 @@ services:
       - "8000:8000"
     environment:
       - FLASK_ENV=production
+      - OLLAMA_API_URL="http://host.docker.internal:11434/api/generate"
 
   nginx:
     image: nginx:latest

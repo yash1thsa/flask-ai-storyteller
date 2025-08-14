@@ -1,19 +1,30 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from config import config
+
+from .config import config  # adjust import path
 
 db = SQLAlchemy()
 
-
-def create_app(env="development"):
+def create_app(env_name):
     app = Flask(__name__)
-    app.config.from_object(config[env])
+    app.config.from_object(config[env_name])
 
-    db.init_app(app)
-    CORS(app)
-
-    from app.routes import main
+    # Import & register blueprints here
+    from .routes import main
     app.register_blueprint(main)
+
+    # Initialize extensions here
+    from .models import db
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+
+    app.config.update(
+        CELERY_BROKER_URL='redis://localhost:6379/0',
+        CELERY_RESULT_BACKEND='redis://localhost:6379/0'
+    )
+    from .celery_app import celery
+    celery.conf.update(app.config)
 
     return app
