@@ -1,10 +1,10 @@
 import requests
-from celery_app import celery
+from app.celery_app import celery
 from time import sleep
 
 OLLAMA_API_URL =  "http://127.0.0.1:11434/api/generate"
 
-@celery.task
+@celery.task(name="app.services.generate_story")
 def generate_story(child_name, favorite_character, setting, theme):
     """
     Generate a personalized bedtime story using a local Ollama model.

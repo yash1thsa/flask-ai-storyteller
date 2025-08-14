@@ -7,4 +7,6 @@ def make_celery(app_name=__name__):
         backend="redis://localhost:6379/0"
     )
 
+
 celery = make_celery()
+celery.autodiscover_tasks(['app.services'])
