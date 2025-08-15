@@ -1,30 +1,20 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
-from .config import config  # adjust import path
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
+migrate = Migrate()
 
-def create_app(env_name):
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config[env_name])
+    app.config.from_object("app.config.Config")
 
-    # Import & register blueprints here
-    from .routes import main
-    app.register_blueprint(main)
-
-    # Initialize extensions here
-    from .models import db
+    # Initialize extensions
     db.init_app(app)
+    migrate.init_app(app, db)
 
-    with app.app_context():
-        db.create_all()
-
-    app.config.update(
-        CELERY_BROKER_URL='redis://localhost:6379/0',
-        CELERY_RESULT_BACKEND='redis://localhost:6379/0'
-    )
-    from .celery_app import celery
-    celery.conf.update(app.config)
+    # Import and register routes AFTER db is initialized
+    from app.routes import bp
+    app.register_blueprint(bp)
 
     return app

@@ -1,17 +1,8 @@
-# Use an official Python image as base
-FROM python:3.9
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy project files into the container
-COPY . /app
-
-# Install dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-# Expose port 8000 for Flask
-EXPOSE 8000
-
-# Command to run the Flask app with Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "--timeout", "120", "run:app"]
+# ============================== Dockerfile ===================================
+# FROM python:3.11-slim
+# WORKDIR /app
+# COPY pyproject.toml poetry.lock* requirements.txt* ./
+# RUN pip install -r requirements.txt || true
+# COPY . .
+# ENV FLASK_APP=wsgi:app
+# EXPOSE 5000

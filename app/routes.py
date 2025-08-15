@@ -1,31 +1,42 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for
+from datetime import datetime
 from app import db
 from app.models import Story
-from app.services import generate_story
+from worker import generate_story
 
-main = Blueprint("main", __name__)
+bp = Blueprint("main", __name__)
 
-@main.route("/", methods=["GET", "POST"])
-def home():
+@bp.route("/", methods=["GET", "POST"])
+def index():
     if request.method == "POST":
-        data = request.form
-        story_text = generate_story.delay(
-            data.get("child_name"),
-            data.get("favorite_character"),
-            data.get("setting"),
-            data.get("theme")
-        )
+        child_name = request.form["child_name"]
+        favorite_character = request.form["favorite_character"]
+        setting = request.form["setting"]
+        theme = request.form["theme"]
 
+        # enqueue Celery task
+        task = generate_story.delay(child_name, favorite_character, setting, theme)
+
+        # store in DB
         new_story = Story(
-            child_name=data.get("child_name"),
-            favorite_character=data.get("favorite_character"),
-            setting=data.get("setting"),
-            theme=data.get("theme"),
-            story_text=story_text
+            child_name=child_name,
+            favorite_character=favorite_character,
+            setting=setting,
+            theme=theme,
+            story_text=None,
+            task_id=task.id,
+            status="pending",
+            created_at=datetime.utcnow()
         )
         db.session.add(new_story)
         db.session.commit()
 
-        return render_template("story.html", story=story_text)
+        return redirect(url_for("main.story_detail", story_id=new_story.id))
 
     return render_template("index.html")
+
+
+@bp.route("/story/<int:story_id>")
+def story_detail(story_id):
+    story = Story.query.get_or_404(story_id)
+    return render_template("story.html", story=story)
